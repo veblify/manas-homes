@@ -214,7 +214,7 @@ const Contact: React.FC = () => (
             </div>
             <div className="mt-12 border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
                  <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Manas Homes. All Rights Reserved.</p>
-                  <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Manas Homes. Developed & maintained by:<a href="https://veblify.vercel.app/" target="_blank"></a> .</p>
+                  <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Manas Homes:- Developed & maintained by:<a href="https://veblify.vercel.app/" target="_blank"></a>VEBLIFY</p>
                  <div className="flex space-x-4 mt-4 md:mt-0">
                     <a href="https://www.instagram.com/manas.homes/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-400 transition-colors" aria-label="Instagram">
                        <InstagramIcon className="w-6 h-6" />
