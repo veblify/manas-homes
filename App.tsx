@@ -212,7 +212,7 @@ const Contact: React.FC = () => (
                     </address>
                 </div>
             </div>
-            <div className="mt-12 border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <div className="mt-12 mb-[-3px] border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
                  <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Manas Homes. All Rights Reserved.</p>
                   <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Manas Homes:Developed &amp; maintained by:<a href="https://veblify.vercel.app/" target="_blank">VEBLIFY</a></p>
                  <div className="flex space-x-4 mt-4 md:mt-0">
