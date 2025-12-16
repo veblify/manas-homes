@@ -21,7 +21,7 @@ const Logo = () => (
     <div className="font-teko tracking-wider">
       <img
         src="/property.ico"
-        alt="Manas Homes Logo"
+        alt="ManasHomes Logo"
         className="h-20 w-auto object-contain"
       />
     </div>
