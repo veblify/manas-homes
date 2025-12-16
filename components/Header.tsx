@@ -2,22 +2,6 @@ import React, { useState, useEffect } from "react";
 
 const Logo = () => (
   <div className="flex items-center flex-shrink-0">
-    <svg width="40" height="40" viewBox="0 0 150 150" className="mr-2">
-      <path d="M5 110 L5 50 L25 50 L25 110 Z" fill="#a5f3fc" />
-      <path d="M10 100 L20 100" stroke="#0284c7" strokeWidth="3" />
-      <path d="M10 90 L20 90" stroke="#0284c7" strokeWidth="3" />
-      <path d="M10 80 L20 80" stroke="#0284c7" strokeWidth="3" />
-      <path d="M10 70 L20 70" stroke="#0284c7" strokeWidth="3" />
-      <path d="M30 110 L30 20 L55 20 L55 110 Z" fill="#6b7280" />
-      <path d="M35 100 L50 100" stroke="#e5e7eb" strokeWidth="3" />
-      <path d="M35 90 L50 90" stroke="#e5e7eb" strokeWidth="3" />
-      <path d="M35 80 L50 80" stroke="#e5e7eb" strokeWidth="3" />
-      <path d="M35 70 L50 70" stroke="#e5e7eb" strokeWidth="3" />
-      <path d="M35 60 L50 60" stroke="#e5e7eb" strokeWidth="3" />
-      <path d="M35 50 L50 50" stroke="#e5e7eb" strokeWidth="3" />
-      <path d="M35 40 L50 40" stroke="#e5e7eb" strokeWidth="3" />
-      <path d="M35 30 L50 30" stroke="#e5e7eb" strokeWidth="3" />
-    </svg>
     <div className="font-teko tracking-wider">
       <img
         src="/property.ico"
