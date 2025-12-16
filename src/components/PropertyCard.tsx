@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Property } from '../types';
 import { MapPinIcon, BedIcon, ArrowsPointingOutIcon } from './Icons';
