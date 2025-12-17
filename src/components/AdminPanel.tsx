@@ -1,8 +1,4 @@
 import React, { useState } from "react";
-import { db, storage } from "../firebase";
-import { addDoc, collection, Timestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Property } from "../types";
 
 interface AdminPanelProps {
   ownerEmail: string;
@@ -18,19 +14,32 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
   const [status, setStatus] = useState("For Sale");
   const [type, setType] = useState("Apartment");
   const [description, setDescription] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 10) {
+      setErrorMsg("You can upload a maximum of 10 images.");
+      return;
+    }
+    setImages(files);
+  };
+
+  const toBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleSubmit = async () => {
     setErrorMsg(null);
     setSuccessMsg(null);
-
-    if (!imageFile) {
-      setErrorMsg("Please select an image.");
-      return;
-    }
 
     if (!title || !location || !price) {
       setErrorMsg("Title, location, and price are required.");
@@ -40,30 +49,45 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
     try {
       setLoading(true);
 
-      // 1. Upload image to Storage
-      const imageRef = ref(
-        storage,
-        `properties/${Date.now()}-${imageFile.name}`
-      );
-      await uploadBytes(imageRef, imageFile);
-      const imageUrl = await getDownloadURL(imageRef);
+      // Convert images to base64
+      const base64Images: string[] = [];
+      for (let i = 0; i < images.length; i++) {
+        const base64 = await toBase64(images[i]);
+        base64Images.push(base64);
+      }
 
-      // 2. Save document in Firestore
-      await addDoc(collection(db, "properties"), {
-        title,
-        location,
-        price,
-        beds: Number(beds) || 0,
-        baths: Number(baths) || 0,
-        area: Number(area) || 0,
-        status,
-        type,
-        description,
-        imageUrl,
-        createdAt: Timestamp.now(),
+      // Build WhatsApp message
+      let message = `New Property Submission:
+
+Title: ${title}
+Location: ${location}
+Price: ${price}
+Beds: ${beds}
+Baths: ${baths}
+Area: ${area}
+Status: ${status}
+Type: ${type}
+Description: ${description}
+
+Images (base64):
+`;
+
+      base64Images.forEach((img, index) => {
+        message += `Image ${index + 1}: ${img}\n\n`;
       });
 
-      setSuccessMsg("Property added successfully!");
+      const encoded = encodeURIComponent(message);
+
+      // YOUR WhatsApp number
+      const phone = "+919691151915";
+
+      // Send to your WhatsApp
+      fetch(`https://wa.me/${phone}?text=${encoded}`);
+
+      setSuccessMsg("Your property will be added within 24 hours.");
+      setLoading(false);
+
+      // Reset form
       setTitle("");
       setLocation("");
       setPrice("");
@@ -73,11 +97,11 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
       setStatus("For Sale");
       setType("Apartment");
       setDescription("");
-      setImageFile(null);
-      setLoading(false);
+      setImages([]);
+
     } catch (err) {
       console.error(err);
-      setErrorMsg("Failed to add property. Please try again.");
+      setErrorMsg("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
@@ -87,56 +111,20 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
       <h2 className="text-3xl font-bold mb-4 font-teko">Admin – Add Property</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input
-          className="border p-2 rounded"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <input
-          className="border p-2 rounded"
-          placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-        <input
-          className="border p-2 rounded"
-          placeholder="Price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-        <input
-          className="border p-2 rounded"
-          placeholder="Beds"
-          value={beds}
-          onChange={(e) => setBeds(e.target.value)}
-        />
-        <input
-          className="border p-2 rounded"
-          placeholder="Baths"
-          value={baths}
-          onChange={(e) => setBaths(e.target.value)}
-        />
-        <input
-          className="border p-2 rounded"
-          placeholder="Area (sqft)"
-          value={area}
-          onChange={(e) => setArea(e.target.value)}
-        />
-        <select
-          className="border p-2 rounded"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
+        <input className="border p-2 rounded" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Beds" value={beds} onChange={(e) => setBeds(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Baths" value={baths} onChange={(e) => setBaths(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Area (sqft)" value={area} onChange={(e) => setArea(e.target.value)} />
+
+        <select className="border p-2 rounded" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option>For Sale</option>
           <option>For Rent</option>
           <option>Sold</option>
         </select>
-        <select
-          className="border p-2 rounded"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-        >
+
+        <select className="border p-2 rounded" value={type} onChange={(e) => setType(e.target.value)}>
           <option>Apartment</option>
           <option>Villa</option>
           <option>Plot</option>
@@ -144,24 +132,20 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
         </select>
       </div>
 
-      <div className="mt-4">
-        <textarea
-          className="border p-2 rounded w-full min-h-[100px]"
-          placeholder="Description (shown in detail modal)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </div>
+      <textarea
+        className="border p-2 rounded w-full min-h-[100px] mt-4"
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
 
-      <div className="mt-4">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) =>
-            setImageFile(e.target.files ? e.target.files[0] : null)
-          }
-        />
-      </div>
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        className="mt-4"
+        onChange={handleImageUpload}
+      />
 
       {errorMsg && <p className="text-red-500 mt-2 text-sm">{errorMsg}</p>}
       {successMsg && <p className="text-green-600 mt-2 text-sm">{successMsg}</p>}
@@ -171,7 +155,7 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
         disabled={loading}
         className="mt-6 bg-orange-600 text-white px-4 py-2 rounded font-semibold disabled:opacity-60"
       >
-        {loading ? "Saving..." : "Add Property"}
+        {loading ? "Sending..." : "Add Property"}
       </button>
     </div>
   );
