@@ -5,13 +5,15 @@ export interface Property {
   id: string | number;
   title: string;
   location: string;
-  price: string;
-  beds: number;
-  baths: number;
-  area: number; // in sq. ft.
-  imageUrl: string;
-  type: 'Residential' | 'Commercial';
-  status: 'For Sale' | 'For Rent';
+  price: string | number;
+  beds: number  | string;
+  baths: number | string;
+  area: number  |string ; // in sq. ft.
+  images?: string[];
+  imageUrl?: string;
+  description?:string;
+  type: 'Residential' | 'Commercial' | 'Apartment';
+  status: 'For Sale' | 'For Rent' | 'Sold';
 }
 
 export interface Service {

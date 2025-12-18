@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
-interface AdminPanelProps {
-  ownerEmail: string;
-}
-
-const AdminPanel: React.FC<AdminPanelProps> = () => {
+// If you ever want props later, you can re-add them.
+// For now, this component doesn't need any props.
+const AdminPanel: React.FC = () => {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
@@ -19,22 +20,34 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // 🔹 Cloudinary config – replace with your actual values
+  const CLOUD_NAME = "dslir0cdz"; // e.g. "dxabc123"
+  const UPLOAD_PRESET = "manas_uploads"; // unsigned preset name
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
     if (files.length > 10) {
       setErrorMsg("You can upload a maximum of 10 images.");
       return;
     }
+
+    setErrorMsg(null);
     setImages(files);
   };
 
-  const toBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const res = await axios.post(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      formData
+    );
+
+    // secure_url is the public URL of the uploaded image
+    return res.data.secure_url as string;
   };
 
   const handleSubmit = async () => {
@@ -49,40 +62,27 @@ const AdminPanel: React.FC<AdminPanelProps> = () => {
     try {
       setLoading(true);
 
-      // Convert images to base64
-      const base64Images: string[] = [];
+      // Upload images to Cloudinary
+      const imageUrls: string[] = [];
       for (let i = 0; i < images.length; i++) {
-        const base64 = await toBase64(images[i]);
-        base64Images.push(base64);
+        const url = await uploadToCloudinary(images[i]);
+        imageUrls.push(url);
       }
 
-      // Build WhatsApp message
-      let message = `New Property Submission:
-
-Title: ${title}
-Location: ${location}
-Price: ${price}
-Beds: ${beds}
-Baths: ${baths}
-Area: ${area}
-Status: ${status}
-Type: ${type}
-Description: ${description}
-
-Images (base64):
-`;
-
-      base64Images.forEach((img, index) => {
-        message += `Image ${index + 1}: ${img}\n\n`;
+      // Save property to Firestore (pending)
+      await addDoc(collection(db, "pendingProperties"), {
+        title,
+        location,
+        price,
+        beds,
+        baths,
+        area,
+        status,
+        type,
+        description,
+        images: imageUrls,
+        createdAt: serverTimestamp(),
       });
-
-      const encoded = encodeURIComponent(message);
-
-      // YOUR WhatsApp number
-      const phone = "+919691151915";
-
-      // Send to your WhatsApp
-      fetch(`https://wa.me/${phone}?text=${encoded}`);
 
       setSuccessMsg("Your property will be added within 24 hours.");
       setLoading(false);
@@ -98,7 +98,6 @@ Images (base64):
       setType("Apartment");
       setDescription("");
       setImages([]);
-
     } catch (err) {
       console.error(err);
       setErrorMsg("Something went wrong. Please try again.");
@@ -108,26 +107,65 @@ Images (base64):
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg max-w-2xl mx-auto my-10">
-      <h2 className="text-3xl font-bold mb-4 font-teko">Admin – Add Property</h2>
+      <h2 className="text-3xl font-bold mb-4 font-teko">
+        Admin – Add Property
+      </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input className="border p-2 rounded" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <input className="border p-2 rounded" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
-        <input className="border p-2 rounded" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
-        <input className="border p-2 rounded" placeholder="Beds" value={beds} onChange={(e) => setBeds(e.target.value)} />
-        <input className="border p-2 rounded" placeholder="Baths" value={baths} onChange={(e) => setBaths(e.target.value)} />
-        <input className="border p-2 rounded" placeholder="Area (sqft)" value={area} onChange={(e) => setArea(e.target.value)} />
+        <input
+          className="border p-2 rounded"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <input
+          className="border p-2 rounded"
+          placeholder="Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+        <input
+          className="border p-2 rounded"
+          placeholder="Price"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+        <input
+          className="border p-2 rounded"
+          placeholder="Beds"
+          value={beds}
+          onChange={(e) => setBeds(e.target.value)}
+        />
+        <input
+          className="border p-2 rounded"
+          placeholder="Baths"
+          value={baths}
+          onChange={(e) => setBaths(e.target.value)}
+        />
+        <input
+          className="border p-2 rounded"
+          placeholder="Area (sqft)"
+          value={area}
+          onChange={(e) => setArea(e.target.value)}
+        />
 
-        <select className="border p-2 rounded" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select
+          className="border p-2 rounded"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
           <option>For Sale</option>
           <option>For Rent</option>
           <option>Sold</option>
         </select>
 
-        <select className="border p-2 rounded" value={type} onChange={(e) => setType(e.target.value)}>
+        <select
+          className="border p-2 rounded"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
           <option>Apartment</option>
-          <option>Villa</option>
-          <option>Plot</option>
+          <option>Reidential</option>
           <option>Commercial</option>
         </select>
       </div>
@@ -148,7 +186,9 @@ Images (base64):
       />
 
       {errorMsg && <p className="text-red-500 mt-2 text-sm">{errorMsg}</p>}
-      {successMsg && <p className="text-green-600 mt-2 text-sm">{successMsg}</p>}
+      {successMsg && (
+        <p className="text-green-600 mt-2 text-sm">{successMsg}</p>
+      )}
 
       <button
         onClick={handleSubmit}

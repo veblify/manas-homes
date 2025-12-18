@@ -4,6 +4,7 @@ import PropertyCard from "./components/PropertyCard";
 import PropertyDetailModal from "./components/PropertyDetailModal";
 import PropertyFilter from "./components/PropertyFilter";
 import { Property, Service, Feature, Testimonial } from "./types";
+import { auth } from "./firebase";
 import { PROPERTIES, SERVICES, FEATURES, TESTIMONIALS } from "./constants";
 import {
   PhoneIcon,
@@ -386,7 +387,7 @@ const App: React.FC = () => {
     const fetchUploaded = async () => {
       try {
         const q = query(
-          collection(db, "properties"),
+          collection(db, "pendingProperties"),
           orderBy("createdAt", "desc")
         );
 
@@ -404,6 +405,7 @@ const App: React.FC = () => {
             area: data.area,
             status: data.status,
             type: data.type,
+            images: data.images || [],
             imageUrl: data.imageUrl,
             description: data.description,
           };
@@ -464,6 +466,33 @@ const App: React.FC = () => {
       document.body.style.overflow = "unset";
     };
   }, [selectedProperty]);
+
+  // ⭐ AUTO LOGOUT WHEN LEAVING PAGE
+  useEffect(() => {
+    const handleUnload = () => {
+      auth.signOut();
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        auth.signOut();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
 
   return (
     <>
