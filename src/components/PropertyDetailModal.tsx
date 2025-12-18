@@ -214,7 +214,7 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               onClick={onClose}
               className="bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 inline-block"
             >
-              Contact Agent
+              Contact Us
             </a>
           </div>
         </div>
