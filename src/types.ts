@@ -4,7 +4,7 @@ import React from 'react';
 export interface Property {
   id: string | number;
   title: string;
-  location: string;
+  location: string | number;
   price: string | number;
   beds: number  | string;
   baths: number | string;
